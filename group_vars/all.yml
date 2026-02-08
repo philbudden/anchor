@@ -48,7 +48,7 @@ ollama_version: "0.15.6"  # Latest stable; verify at https://github.com/ollama/o
 docker_desktop_version: "4.59.1"
 
 # OpenWebUI container image tag (pinned for reproducibility; use version tag or digest)
-openwebui_image_tag: "v0.5.4"  # Specific release; use version tags for reproducibility
+openwebui_image_tag: "v0.7.2"  # Specific release; use version tags for reproducibility
 
 
 # ============================================================================

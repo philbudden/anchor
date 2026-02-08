@@ -85,10 +85,20 @@ Same as Ubuntu/Debian; use `wsl` terminal.
 
 ## Verification
 
-Verify installation:
+Verify installation with the ansible command (output should show Ansible 2.13+):
 
 ```bash
 ansible --version
+```
+
+Expected output:
+```
+ansible [core 2.13.x] ...
+```
+
+Also verify yamllint:
+
+```bash
 yamllint --version
 ```
 
@@ -98,10 +108,6 @@ Test SSH connectivity:
 ssh user@host -vvv
 ```
 
-Output should show Ansible 2.13+:
-```
-ansible [core 2.13.x] ...
-```
 ---
 
 For setup and usage, see [docs/SETUP.md](SETUP.md).
