@@ -1,0 +1,28 @@
+# Ansible-lint configuration
+
+---
+extends: default
+
+# Exclude paths from linting
+exclude_paths:
+  - .git/
+  - .venv/
+  - venv/
+  - __pycache__/
+  - .ansible/
+
+# Rules to ignore or customize
+rules:
+  # Avoid line length warnings for inventory and doc files
+  line-length:
+    max: 120
+  
+  # Allow use of shell module where appropriate
+  risky-shell-task: disable
+  
+  # Allow dangerous tasks when creating infrastructure
+  run-once:
+    loop-var-prefix: []
+
+# Verbosity level (higher = more output)
+verbosity: 1

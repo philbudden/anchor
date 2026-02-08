@@ -1,0 +1,54 @@
+# Ansible and project ignores
+
+# Local environment files (never commit secrets)
+.env
+.env.local
+*.env.secret
+group_vars/*.secret.yml
+host_vars/*.secret.yml
+
+# Ansible cache and facts
+.ansible/
+*.cache
+*.fact
+/tmp/ansible_facts_cache/
+.ansible_facts_cache/
+
+# SSH keys and credentials
+*.pem
+*.key
+*.pub
+~/.ssh/
+
+# Python/venv
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Editor and IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env.local
+
+# Lint output
+.yamllint
+ansible-lint-report
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build/dist
+build/
+dist/
+*.tar.gz

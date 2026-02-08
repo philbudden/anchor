@@ -1,0 +1,57 @@
+---
+# Main provisioning playbook (entrypoint).
+# Orchestrates all roles for host provisioning and service deployment.
+#
+# Default behavior (safe):
+# - Provision host (Homebrew, Ollama, Docker Desktop, OpenWebUI)
+# - Ensure declared models are present (do not repull or prune by default)
+# - No upgrades, no model pruning
+#
+# Usage:
+#   ansible-playbook playbooks/site.yml                  # Default safe run
+#   ansible-playbook playbooks/site.yml --check          # Dry-run
+#   ansible-playbook playbooks/site.yml -e enable_upgrades=true  # With upgrades
+#   ansible-playbook playbooks/site.yml --tags verify    # Run only verification
+#
+# See docs/ for upgrade procedures and troubleshooting.
+
+- name: "Provision local LLM server"
+  hosts: macmini
+  gather_facts: yes
+
+  pre_tasks:
+    - name: "Display provisioning mode"
+      debug:
+        msg: |
+          Provisioning mode:
+            enable_upgrades: {{ enable_upgrades }}
+            ollama_models_refresh: {{ ollama_models_refresh }}
+            ollama_models_prune: {{ ollama_models_prune }}
+          
+          Data directory: {{ local_llm_data_dir }}
+          Declared models: {{ ollama_models | length }}
+
+  roles:
+    # Future roles will be added here:
+    # - role: common
+    #   tags: [always]
+    # - role: homebrew
+    #   tags: [homebrew, always]
+    # - role: ollama
+    #   tags: [ollama]
+    # - role: docker_desktop
+    #   tags: [docker_desktop]
+    # - role: models
+    #   tags: [models]
+    # - role: openwebui
+    #   tags: [openwebui]
+
+  post_tasks:
+    - name: "Provisioning complete"
+      debug:
+        msg: |
+          Provisioning complete.
+          Next steps:
+            1. Verify connectivity: ansible-playbook playbooks/verify.yml
+            2. Review health checks in docs/
+            3. Configure access as needed

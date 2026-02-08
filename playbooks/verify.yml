@@ -1,0 +1,55 @@
+---
+# Connectivity and environment verification playbook.
+# This is a read-only, safe diagnostic playbook suitable for regular runs.
+# No system state is modified. Gather facts and validate assumptions.
+
+- name: "Verify connectivity and environment"
+  hosts: all
+  gather_facts: yes
+  vars:
+    ansible_connection: ssh
+
+  tasks:
+    - name: "Display Ansible version"
+      debug:
+        msg: "Ansible version: {{ ansible_version.full }}"
+
+    - name: "Display target host facts"
+      debug:
+        msg: |
+          Hostname: {{ ansible_hostname }}
+          OS: {{ ansible_os_family }} / {{ ansible_system }} {{ ansible_system_version }}
+          Architecture: {{ ansible_architecture }}
+          IP Address: {{ ansible_default_ipv4.address | default('N/A') }}
+
+    - name: "Verify required data directory is configured"
+      debug:
+        msg: |
+          Local LLM data directory: {{ local_llm_data_dir }}
+          Ollama models directory: {{ ollama_models_dir }}
+          OpenWebUI data directory: {{ openwebui_data_dir }}
+
+    - name: "Check if data directory exists"
+      stat:
+        path: "{{ local_llm_data_dir }}"
+      register: data_dir_stat
+
+    - name: "Report data directory status"
+      debug:
+        msg: |
+          Data directory exists: {{ data_dir_stat.stat.exists }}
+          Path: {{ local_llm_data_dir }}
+          Accessible: {{ data_dir_stat.stat.accessible | default('unknown') }}
+      when: not data_dir_stat.stat.exists
+      failed_when: not data_dir_stat.stat.exists
+
+    - name: "Verify SSH connectivity"
+      debug:
+        msg: "SSH connection successful"
+
+    - name: "Display configured modes and safety switches"
+      debug:
+        msg: |
+          Enable upgrades: {{ enable_upgrades }}
+          Ollama models refresh: {{ ollama_models_refresh }}
+          Ollama models prune: {{ ollama_models_prune }}

@@ -1,0 +1,8 @@
+---
+# Common tasks: shared setup, assertions, and preconditions.
+# No system mutations. Used by other roles as foundation.
+
+# Placeholder for future shared tasks:
+# - Directory structure setup and permissions
+# - Firewall rules (if needed)
+# - System assertions and preflight checks
