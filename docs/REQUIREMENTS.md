@@ -104,7 +104,7 @@ yamllint --version
 
 Expected output:
 ```
-yamllint 1.26.0 ...
+yamllint 1.26.x ...
 ```
 
 Test SSH connectivity:
