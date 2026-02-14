@@ -1,0 +1,21 @@
+# Ansible-lint configuration
+
+---
+profile: moderate
+
+# Exclude paths from linting
+exclude_paths:
+  - .git/
+  - .venv/
+  - venv/
+  - __pycache__/
+  - .ansible/
+
+# Rules to skip
+skip_list:
+  - risky-shell-pipe  # Allow shell pipes where appropriate
+  - no-changed-when   # Allow commands without changed_when in some cases
+
+# Enable offline mode to avoid schema downloads
+offline: true
+

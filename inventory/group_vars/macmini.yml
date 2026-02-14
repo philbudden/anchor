@@ -1,0 +1,7 @@
+---
+# macOS Mac mini host-specific overrides.
+# Keep this minimal; prefer defaults in group_vars/all.yml.
+# Override only when a setting differs from the global default.
+
+# Example host-specific override (uncomment if needed):
+# local_llm_data_dir: /Volumes/ExternalStorage/local-llm

@@ -1,0 +1,73 @@
+---
+# Preflight playbook: Install absolute minimum prerequisites
+# This playbook installs only what's needed for Ansible to function on macOS.
+# Must run before site.yml or verify.yml on a fresh macOS system.
+#
+# Usage:
+#   ansible-playbook playbooks/preflight.yml
+#
+# What it does:
+# - Installs Xcode Command Line Tools (required for Python, git, and basic dev tools)
+# - Does NOT require fact gathering (safe for completely fresh systems)
+
+- name: "Install macOS prerequisites for Ansible"
+  hosts: macmini
+  gather_facts: false  # Disabled because it fails without CLI tools
+
+  tasks:
+    - name: "Check if Xcode Command Line Tools are installed"
+      raw: xcode-select -p
+      register: xcode_check
+      failed_when: false
+      changed_when: false
+
+    - name: "Display Xcode CLI Tools status"
+      raw: |
+        if xcode-select -p &>/dev/null; then
+          echo "Xcode Command Line Tools are already installed at: $(xcode-select -p)"
+        else
+          echo "Xcode Command Line Tools are NOT installed - will install now"
+        fi
+      changed_when: false
+
+    - name: "Install Xcode Command Line Tools (non-interactive)"
+      raw: |
+        if ! xcode-select -p &>/dev/null; then
+          echo "Installing Xcode Command Line Tools..."
+          touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+          PROD=$(softwareupdate -l 2>/dev/null | grep "\*.*Command Line" | tail -n 1 | sed 's/^[^C]* //')
+          if [ -n "$PROD" ]; then
+            softwareupdate -i "$PROD" --verbose
+          else
+            # Fallback: trigger interactive install
+            xcode-select --install 2>/dev/null || true
+            echo "Triggered Xcode CLI Tools installation. This may require manual confirmation on the Mac."
+            echo "Please accept the installation dialog on the Mac mini, then re-run this playbook."
+            exit 1
+          fi
+          rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+          echo "Installation complete"
+        else
+          echo "Already installed, skipping"
+        fi
+      args:
+        executable: /bin/bash
+      when: xcode_check.rc != 0
+      register: xcode_install
+
+    - name: "Verify Xcode Command Line Tools installation"
+      raw: xcode-select -p
+      changed_when: false
+
+    - name: "Display completion message"
+      raw: |
+        echo ""
+        echo "================================================"
+        echo "Preflight complete!"
+        echo "Xcode Command Line Tools: $(xcode-select -p)"
+        echo ""
+        echo "You can now run:"
+        echo "  ansible-playbook playbooks/verify.yml"
+        echo "  ansible-playbook playbooks/site.yml"
+        echo "================================================"
+      changed_when: false

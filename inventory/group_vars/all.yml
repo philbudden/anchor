@@ -1,0 +1,90 @@
+---
+# Global defaults for all hosts and groups.
+# These apply to every host unless overridden in group_vars/<group>.yml or host_vars/<host>.yml
+
+# ============================================================================
+# Data and state management
+# ============================================================================
+
+# Root directory for all provisioning state (models, cache, config)
+# Requires operator to create directory with appropriate permissions
+local_llm_data_dir: /opt/local-llm
+
+# Ollama models directory (subdirectory of local_llm_data_dir)
+ollama_models_dir: "{{ local_llm_data_dir }}/ollama/models"
+
+# OpenWebUI data directory (subdirectory of local_llm_data_dir)
+openwebui_data_dir: "{{ local_llm_data_dir }}/openwebui"
+
+
+# ============================================================================
+# Execution modes and safety switches (section 7 of AGENTS.md)
+# ============================================================================
+
+# Enable system upgrades (Homebrew, Docker Desktop, Ollama, container images)
+# Default: false (upgrades require explicit enablement)
+enable_upgrades: false
+
+# Refresh (repull) all declared Ollama models
+# Default: false (models are only pulled if not present)
+ollama_models_refresh: false
+
+# Prune unmanaged Ollama models (remove models not declared in config)
+# Default: false (dangerous; only enable after validating what will be removed)
+ollama_models_prune: false
+
+
+# ============================================================================
+# Version pinning (section 4 of AGENTS.md)
+# ============================================================================
+
+# Pinned versions for major components
+# Update these deliberately; don't use "latest" by default
+
+# Ollama version to install
+ollama_version: "0.15.6"  # Latest stable; verify at https://github.com/ollama/ollama/releases
+
+# Docker Desktop version (macOS specific; verify available versions at docker.com)
+docker_desktop_version: "4.59.1"
+
+# OpenWebUI container image tag (pinned for reproducibility; use version tag or digest)
+openwebui_image_tag: "v0.7.2"  # Specific release; use version tags for reproducibility
+
+
+# ============================================================================
+# Ollama configuration
+# ============================================================================
+
+# Ollama service should listen on localhost only by default
+ollama_api_host: "127.0.0.1"
+ollama_api_port: 11434
+
+# Health check timeout (seconds)
+ollama_health_check_timeout: 30
+
+
+# ============================================================================
+# OpenWebUI configuration
+# ============================================================================
+
+# OpenWebUI service should listen on localhost only by default
+openwebui_api_host: "127.0.0.1"
+openwebui_api_port: 3000
+
+# Container name for Docker Compose identification
+openwebui_container_name: openwebui
+
+
+# ============================================================================
+# Declared models (section 6 of AGENTS.md)
+# ============================================================================
+# Single source of truth for which models should be present.
+# Each model is fetched by `ollama pull <name>` format.
+# Keep fully qualified names (tag included; don't assume "latest").
+
+ollama_models: []
+  # Example (uncomment to enable):
+  # - name: llama3.1:8b
+  #   state: present
+  # - name: nomic-embed-text
+  #   state: present

@@ -1,0 +1,118 @@
+# Ansible Requirements
+
+Dependencies for provisioning the local-llm-server.
+
+## Python Environment
+
+Requires Python 3.9+:
+
+```bash
+python3 --version
+```
+
+## Ansible and Tools
+
+Install via Homebrew (macOS control node):
+
+```bash
+brew install ansible yamllint
+```
+
+Or via pip (any platform, recommended for reproducibility):
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+## requirements.txt
+
+```
+ansible>=2.13.0,<3.0.0
+yamllint>=1.26.0
+ansible-lint>=6.0.0
+```
+
+## Target Node (Mac mini)
+
+### System Requirements
+- macOS 11.0 (Big Sur) or later
+- SSH enabled (`System Preferences > Sharing > Remote Login`)
+- At least 50 GB free disk space (for models)
+- 8 GB RAM minimum (16 GB recommended)
+
+### Pre-provisioning Checklist
+- [ ] Mac mini accessible via SSH
+- [ ] SSH user created (e.g., `automation`)
+- [ ] SSH key copied to `~/.ssh/authorized_keys`
+- [ ] Data directory created: `sudo mkdir -p /opt/local-llm`
+- [ ] Data directory permissions set: `sudo chown -R $(whoami):staff /opt/local-llm`
+- [ ] Sudo available (if required by roles)
+
+### Verified Compatibility
+- macOS 12 (Monterey) ✓
+- macOS 13 (Ventura) ✓
+- macOS 14 (Sonoma) ✓
+- macOS 15 (Sequoia) ✓
+
+Older versions may work but are untested.
+
+## Control Node (Your Workstation)
+
+Any macOS, Linux, or WSL environment with:
+- Python 3.9+
+- Ansible 2.13+
+- SSH client
+- Git
+
+### Installation
+
+**macOS:**
+```bash
+brew install ansible yamllint python3@3.12
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install -y ansible yamllint python3-pip
+```
+
+**Windows (WSL):**
+Same as Ubuntu/Debian; use `wsl` terminal.
+
+## Verification
+
+Verify installation with the ansible command (output should show Ansible 2.13+):
+
+```bash
+ansible --version
+```
+
+Expected output:
+```
+ansible [core 2.13.x] ...
+```
+
+Also verify yamllint:
+
+```bash
+yamllint --version
+```
+
+Expected output:
+```
+yamllint 1.26.x ...
+```
+
+Test SSH connectivity:
+
+```bash
+ssh user@host -vvv
+```
+
+---
+
+For setup and usage, see [docs/SETUP.md](SETUP.md).
