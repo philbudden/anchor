@@ -1,0 +1,13 @@
+---
+# Homebrew role defaults
+# These can be overridden in group_vars or host_vars
+
+# Homebrew installation path (macOS default)
+homebrew_prefix: "/opt/homebrew"
+
+# Homebrew packages to install (beyond Ollama and Docker Desktop)
+# These are utilities needed for provisioning or operations
+homebrew_packages: []
+
+# Allow brew upgrade (default: false; upgrades require explicit enablement)
+homebrew_upgrade: "{{ enable_upgrades | default(false) }}"

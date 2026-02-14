@@ -1,0 +1,57 @@
+# yamllint configuration for consistent YAML formatting
+# See: https://yamllint.readthedocs.io/
+# Configured to work with ansible-lint requirements
+
+extends: default
+
+rules:
+  # Line length - allow longer lines for readability in Ansible
+  line-length:
+    max: 120
+    level: warning
+
+  # Indentation - enforce 2 spaces consistently
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  # Comments - required by ansible-lint
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: false  # Required by ansible-lint
+
+  # Truthy values - allow yes/no in Ansible (common convention)
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no']
+    check-keys: false
+
+  # Document start - allow both with and without --- (Ansible uses both)
+  document-start: disable
+
+  # Empty lines - be reasonable
+  empty-lines:
+    max: 2
+
+  # Octal values - required by ansible-lint
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+
+  # Brackets and braces
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+ignore: |
+  .git/
+  .venv/
+  venv/
+  __pycache__/
+  .ansible/
+  .ansible_facts_cache/
+  compose/

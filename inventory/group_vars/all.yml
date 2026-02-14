@@ -82,9 +82,20 @@ openwebui_container_name: openwebui
 # Each model is fetched by `ollama pull <name>` format.
 # Keep fully qualified names (tag included; don't assume "latest").
 
-ollama_models: []
-  # Example (uncomment to enable):
-  # - name: llama3.1:8b
-  #   state: present
-  # - name: nomic-embed-text
-  #   state: present
+ollama_models:
+  - name: bge-m3:latest
+    state: present
+  - name: deepseek-r1:8b
+    state: present
+  - name: llama3.1:8b
+    state: present
+  - name: nomic-embed-text:latest
+    state: present
+  - name: qwen2.5-coder:7b
+    state: present
+  - name: qwen3-vl:8b
+    state: present
+  - name: qwen3:8b
+    state: present
+  - name: x/z-image-turbo:fp8
+    state: present

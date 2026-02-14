@@ -11,7 +11,18 @@
 #   ansible-playbook playbooks/site.yml                  # Default safe run
 #   ansible-playbook playbooks/site.yml --check          # Dry-run
 #   ansible-playbook playbooks/site.yml -e enable_upgrades=true  # With upgrades
+#   ansible-playbook playbooks/site.yml --tags preflight # Run preflight checks only
+#   ansible-playbook playbooks/site.yml --tags smoke     # Non-destructive smoke test
 #   ansible-playbook playbooks/verify.yml               # Run connectivity verification
+#
+# Available tags:
+#   preflight        - System checks and assertions (safe, read-only)
+#   brew             - Homebrew installation and packages
+#   ollama           - Ollama installation and service
+#   docker_desktop   - Docker Desktop installation
+#   models           - Ollama model management
+#   openwebui        - OpenWebUI container deployment
+#   smoke            - Non-destructive subset for CI testing
 #
 # See docs/ for upgrade procedures and troubleshooting.
 
@@ -21,7 +32,7 @@
 
   pre_tasks:
     - name: "Display provisioning mode"
-      debug:
+      ansible.builtin.debug:
         msg: |
           Provisioning mode:
             enable_upgrades: {{ enable_upgrades }}
@@ -30,28 +41,37 @@
 
           Data directory: {{ local_llm_data_dir }}
           Declared models: {{ ollama_models | length }}
+      tags: [always]
 
-  roles: []
-    # Future roles will be added here:
-    # - role: common
-    #   tags: [always]
-    # - role: homebrew
-    #   tags: [homebrew, always]
-    # - role: ollama
-    #   tags: [ollama]
-    # - role: docker_desktop
-    #   tags: [docker_desktop]
-    # - role: models
-    #   tags: [models]
-    # - role: openwebui
-    #   tags: [openwebui]
+    - name: "Assert running on macOS (Darwin)"
+      ansible.builtin.assert:
+        that:
+          - ansible_system == "Darwin"
+        fail_msg: "This playbook is designed for macOS only. Detected: {{ ansible_system }}"
+        success_msg: "Running on macOS ({{ ansible_distribution }} {{ ansible_distribution_version }})"
+      tags: [preflight, always]
+
+  roles:
+    - role: common
+      tags: [always, preflight]
+    - role: homebrew
+      tags: [brew]
+    - role: ollama
+      tags: [ollama]
+    - role: docker_desktop
+      tags: [docker_desktop]
+    - role: models
+      tags: [models]
+    - role: openwebui
+      tags: [openwebui]
 
   post_tasks:
     - name: "Provisioning complete"
-      debug:
+      ansible.builtin.debug:
         msg: |
           Provisioning complete.
           Next steps:
             1. Verify connectivity: ansible-playbook playbooks/verify.yml
             2. Review health checks in docs/
             3. Configure access as needed
+      tags: [always]

@@ -7,6 +7,10 @@
 group_vars/*.secret.yml
 host_vars/*.secret.yml
 
+# Inventory backups (may contain secrets)
+inventory/*.bak
+*.bak
+
 # Ansible cache and facts
 .ansible/
 *.cache
@@ -41,7 +45,6 @@ env/
 .DS_Store
 
 # Lint output
-.yamllint
 ansible-lint-report
 
 # OS
@@ -54,3 +57,4 @@ Thumbs.db
 build/
 dist/
 *.tar.gz
+inventory/hosts.yml

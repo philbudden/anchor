@@ -1,0 +1,99 @@
+---
+# Ollama models management
+# Ensures declared models are present; optionally prunes unmanaged models
+# Idempotent: safe to re-run; only pulls missing models by default
+
+- name: "Verify Ollama CLI is available"
+  ansible.builtin.stat:
+    path: "{{ models_ollama_cli_path }}"
+  register: ollama_cli_stat
+  when: ansible_system == "Darwin"
+
+- name: "Fail if Ollama is not installed"
+  ansible.builtin.fail:
+    msg: "Ollama CLI not found at {{ models_ollama_cli_path }}. Run ollama role first."
+  when:
+    - ansible_system == "Darwin"
+    - not ollama_cli_stat.stat.exists
+
+- name: "List currently installed Ollama models"
+  ansible.builtin.command: "{{ models_ollama_cli_path }} list"
+  register: ollama_list_output
+  changed_when: false
+  when: ansible_system == "Darwin"
+
+- name: "Parse installed model names"
+  ansible.builtin.set_fact:
+    installed_models: "{{ ollama_list_output.stdout_lines[1:] | map('regex_replace', '^([^\\s]+).*', '\\1') | list }}"
+  when:
+    - ansible_system == "Darwin"
+    - ollama_list_output.stdout_lines | length > 1
+
+- name: "Set empty installed models if none present"
+  ansible.builtin.set_fact:
+    installed_models: []
+  when:
+    - ansible_system == "Darwin"
+    - ollama_list_output.stdout_lines | length <= 1
+
+- name: "Display currently installed models"
+  ansible.builtin.debug:
+    msg: "Installed models: {{ installed_models | join(', ') if installed_models | length > 0 else 'none' }}"
+  when: ansible_system == "Darwin"
+
+- name: "Pull declared models (only if missing or refresh enabled)"
+  ansible.builtin.command: "{{ models_ollama_cli_path }} pull {{ item.name }}"
+  loop: "{{ ollama_models }}"
+  when:
+    - ansible_system == "Darwin"
+    - item.state | default('present') == 'present'
+    - (item.name not in installed_models) or (ollama_models_refresh | bool)
+  register: model_pull_result
+  changed_when: model_pull_result.rc == 0
+
+- name: "List models to prune (if prune mode enabled)"
+  ansible.builtin.set_fact:
+    models_to_prune: >-
+      {{
+        installed_models | difference(
+          ollama_models
+          | selectattr('state', 'equalto', 'present')
+          | map(attribute='name')
+          | list
+        )
+      }}
+  when:
+    - ansible_system == "Darwin"
+    - ollama_models_prune | bool
+
+- name: "Display models that will be pruned"
+  ansible.builtin.debug:
+    msg: "Models to prune: {{ models_to_prune | join(', ') if models_to_prune | length > 0 else 'none' }}"
+  when:
+    - ansible_system == "Darwin"
+    - ollama_models_prune | bool
+
+- name: "Remove unmanaged models (if prune mode enabled)"
+  ansible.builtin.command: "{{ models_ollama_cli_path }} rm {{ item }}"
+  loop: "{{ models_to_prune }}"
+  when:
+    - ansible_system == "Darwin"
+    - ollama_models_prune | bool
+    - models_to_prune | length > 0
+  register: model_rm_result
+  changed_when: true
+
+- name: "Verify all declared models are present"
+  ansible.builtin.command: "{{ models_ollama_cli_path }} list"
+  register: final_model_list
+  changed_when: false
+  when: ansible_system == "Darwin"
+
+- name: "Display final model list"
+  ansible.builtin.debug:
+    msg: "{{ final_model_list.stdout_lines }}"
+  when:
+    - ansible_system == "Darwin"
+    - final_model_list is defined
+    - final_model_list is not skipped
+    - final_model_list.stdout_lines is defined

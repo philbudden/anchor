@@ -49,9 +49,15 @@ Configuration:
 
 Tasks:
 - Download and install Docker Desktop (macOS, pinned version)
-- Ensure Docker daemon is running (or guide manual start if needed)
-- Validate `docker` CLI functionality
-- Document non-interactive behavior vs. macOS security prompts
+- Check if Docker daemon is running
+- If not running: **fail with clear instructions** for manual Docker startup
+- User must start Docker Desktop and re-run playbook
+
+Behavior:
+- **Explicit failure:** If Docker daemon is not running after installation, the playbook fails with formatted instructions
+- **Idempotent re-run:** After user starts Docker, re-running the playbook skips completed steps and continues
+- **Clear guidance:** Failure message includes step-by-step instructions and IP address of target Mac
+- **Skip option:** Can be bypassed with `-e docker_startup_skip_check=true` (not recommended)
 
 Configuration:
 - Pinned version: `docker_desktop_version`

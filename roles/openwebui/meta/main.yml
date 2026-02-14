@@ -1,0 +1,15 @@
+---
+# OpenWebUI role metadata
+galaxy_info:
+  author: Local LLM Server Project
+  description: Deploys OpenWebUI via Docker Compose
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: MacOSX
+      versions:
+        - all
+
+dependencies:
+  - role: docker_desktop
+  - role: ollama

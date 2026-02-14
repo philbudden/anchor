@@ -1,8 +1,49 @@
 ---
 # Common tasks: shared setup, assertions, and preconditions.
-# No system mutations. Used by other roles as foundation.
+# No system mutations (except directory creation). Used by other roles as foundation.
 
-# Placeholder for future shared tasks:
-# - Directory structure setup and permissions
-# - Firewall rules (if needed)
-# - System assertions and preflight checks
+- name: "Ensure local_llm_data_dir is defined"
+  ansible.builtin.assert:
+    that:
+      - local_llm_data_dir is defined
+      - local_llm_data_dir | length > 0
+    fail_msg: "local_llm_data_dir must be defined in group_vars/all.yml"
+    success_msg: "Data directory configured: {{ local_llm_data_dir }}"
+
+- name: "Check if data directory exists"
+  ansible.builtin.stat:
+    path: "{{ local_llm_data_dir }}"
+  register: data_dir_stat
+
+- name: "Create data directory if missing"
+  ansible.builtin.file:
+    path: "{{ local_llm_data_dir }}"
+    state: directory
+    mode: '0755'
+  when: not data_dir_stat.stat.exists
+  become: true
+
+- name: "Create Ollama models subdirectory"
+  ansible.builtin.file:
+    path: "{{ ollama_models_dir }}"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: "Create OpenWebUI data subdirectory"
+  ansible.builtin.file:
+    path: "{{ openwebui_data_dir }}"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: "Verify data directories are writable"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ local_llm_data_dir }}"
+    - "{{ ollama_models_dir }}"
+    - "{{ openwebui_data_dir }}"
+  become: true

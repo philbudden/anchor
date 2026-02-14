@@ -1,0 +1,11 @@
+---
+# Docker Desktop role defaults
+
+# Docker Desktop version is defined in group_vars/all.yml (docker_desktop_version)
+# Override there for version changes
+
+# Allow Docker Desktop upgrade (default: false)
+docker_desktop_upgrade: "{{ enable_upgrades | default(false) }}"
+
+# Docker CLI verification timeout
+docker_desktop_docker_cli_timeout: 30

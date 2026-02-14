@@ -1,0 +1,7 @@
+---
+# Ansible Galaxy collections required for this project
+collections:
+  - name: community.general
+    version: "9.5.0"
+  - name: community.docker
+    version: "4.1.0"

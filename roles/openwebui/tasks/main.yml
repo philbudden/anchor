@@ -1,0 +1,124 @@
+---
+# OpenWebUI deployment via Docker Compose
+# Idempotent: safe to re-run; manages container lifecycle
+
+- name: "Verify Docker is available"
+  ansible.builtin.command: /usr/local/bin/docker --version
+  register: docker_check
+  failed_when: docker_check.rc != 0
+  changed_when: false
+  when: ansible_system == "Darwin"
+
+- name: "Verify Docker daemon is running"
+  ansible.builtin.command: /usr/local/bin/docker info
+  register: docker_info_check
+  failed_when: docker_info_check.rc != 0
+  changed_when: false
+  when: ansible_system == "Darwin"
+
+- name: "Create OpenWebUI data directory"
+  ansible.builtin.file:
+    path: "{{ openwebui_data_dir }}"
+    state: directory
+    mode: '0755'
+  become: true
+  when: ansible_system == "Darwin"
+
+- name: "Create OpenWebUI compose directory"
+  ansible.builtin.file:
+    path: "{{ openwebui_compose_dir }}"
+    state: directory
+    mode: '0755'
+  when: ansible_system == "Darwin"
+
+- name: "Copy Docker Compose file for OpenWebUI"
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ openwebui_compose_dir }}/compose.yml"
+    mode: '0644'
+  when: ansible_system == "Darwin"
+
+- name: "Check if .env file exists"
+  ansible.builtin.stat:
+    path: "{{ openwebui_compose_dir }}/.env"
+  register: env_file_stat
+  when: ansible_system == "Darwin"
+
+- name: "Create .env file from template if missing"
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ openwebui_compose_dir }}/.env"
+    mode: '0600'
+  when:
+    - ansible_system == "Darwin"
+    - not env_file_stat.stat.exists
+
+- name: "Pull OpenWebUI container image (if upgrade enabled)"
+  ansible.builtin.command: "/usr/local/bin/docker pull ghcr.io/open-webui/open-webui:{{ openwebui_image_tag }}"
+  when:
+    - ansible_system == "Darwin"
+    - openwebui_upgrade | bool
+  register: docker_pull_result
+  changed_when: "'Downloaded newer image' in docker_pull_result.stdout or 'Pulling from' in docker_pull_result.stdout"
+  failed_when: docker_pull_result.rc != 0
+
+- name: "Deploy OpenWebUI via Docker Compose"
+  ansible.builtin.command: "/usr/local/bin/docker compose up -d"
+  args:
+    chdir: "{{ openwebui_compose_dir }}"
+  environment:
+    PATH: "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/Docker.app/Contents/Resources/bin"
+  when: ansible_system == "Darwin"
+  register: compose_result
+  changed_when: "'Started' in compose_result.stderr or 'Created' in compose_result.stderr"
+  failed_when: false
+
+- name: "Check for Docker file sharing error"
+  ansible.builtin.fail:
+    msg: |
+      Docker needs access to {{ local_llm_data_dir }}.
+
+      To fix this:
+      1. Open Docker Desktop
+      2. Go to Settings → Resources → File Sharing
+      3. Add {{ local_llm_data_dir }} to the shared paths
+      4. Click "Apply & Restart"
+      5. Re-run this playbook
+
+      See: https://docs.docker.com/go/mac-file-sharing/
+  when:
+    - ansible_system == "Darwin"
+    - compose_result.rc != 0
+    - "'mounts denied' in compose_result.stderr or 'not shared from the host' in compose_result.stderr"
+
+- name: "Fail on other docker compose errors"
+  ansible.builtin.fail:
+    msg: "Docker compose failed: {{ compose_result.stderr }}"
+  when:
+    - ansible_system == "Darwin"
+    - compose_result.rc != 0
+    - "'mounts denied' not in compose_result.stderr"
+    - "'not shared from the host' not in compose_result.stderr"
+
+- name: "Wait for OpenWebUI to be available"
+  ansible.builtin.uri:
+    url: "http://{{ openwebui_api_host }}:{{ openwebui_api_port }}"
+    method: GET
+    timeout: 5
+    status_code: 200
+  register: openwebui_health
+  until: openwebui_health.status == 200
+  retries: 12
+  delay: 5
+  when: ansible_system == "Darwin"
+  failed_when: false
+
+- name: "Display OpenWebUI health check result"
+  ansible.builtin.debug:
+    msg: >
+      OpenWebUI is {{ 'healthy and available at http://' + openwebui_api_host + ':' + (openwebui_api_port | string)
+      if openwebui_health.status == 200 else 'not responding - check Docker logs' }}
+  when:
+    - ansible_system == "Darwin"
+    - openwebui_health is defined
+    - openwebui_health is not skipped

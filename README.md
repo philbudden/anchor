@@ -15,12 +15,24 @@ It is designed for long-term maintenance: safe upgrades, explicit model manageme
    - Configure target host in `inventory/hosts.yml`
    - Review defaults in `group_vars/all.yml`
 
-3. **Verify connectivity:**
+3. **Create data directory on target Mac:**
+   ```bash
+   # SSH to the Mac mini and create the directory (default: /opt/local-llm)
+   ssh user@macmini "sudo mkdir -p /opt/local-llm && sudo chown $(whoami) /opt/local-llm"
+   ```
+   Or customize the path by setting `local_llm_data_dir` in your inventory.
+
+4. **Install prerequisites (fresh Mac only):**
+   ```bash
+   ansible-playbook playbooks/preflight.yml
+   ```
+
+5. **Verify connectivity:**
    ```bash
    ansible-playbook playbooks/verify.yml
    ```
 
-4. **Provision the host:**
+6. **Provision the host:**
    ```bash
    ansible-playbook playbooks/site.yml --check  # Dry-run first
    ansible-playbook playbooks/site.yml           # Apply
@@ -51,17 +63,17 @@ See [docs/SETUP.md](docs/SETUP.md) for detailed setup instructions.
 │
 ├── roles/
 │   ├── common/                 # Shared setup and assertions
-│   ├── homebrew/               # Homebrew installation (future)
-│   ├── ollama/                 # Ollama LLM runtime (future)
-│   ├── docker_desktop/         # Docker Desktop (future)
-│   ├── models/                 # Model reconciliation (future)
-│   ├── openwebui/              # OpenWebUI deployment (future)
+│   ├── homebrew/               # Homebrew installation
+│   ├── ollama/                 # Ollama LLM runtime
+│   ├── docker_desktop/         # Docker Desktop
+│   ├── models/                 # Model reconciliation
+│   ├── openwebui/              # OpenWebUI deployment
 │   └── README.md               # Role documentation
 │
 ├── compose/
 │   └── openwebui/
-│       ├── compose.yml         # Docker Compose config (future)
 │       └── .env.example        # Environment template (no secrets)
+│                               # (compose.yml generated from template)
 │
 ├── docs/
 │   ├── SETUP.md                # Setup and operational guide
@@ -104,11 +116,21 @@ Use the Makefile for common tasks:
 
 ```bash
 make help              # Show all available commands
+
+# Testing (run before committing)
+make test              # Run all validation checks (fast)
+make test-all          # Run all tests including linting
 make lint              # Run ansible-lint and yamllint
+make syntax-check      # Check Ansible playbook syntax
+make validate          # Run custom validation scripts
+
+# Provisioning
 make verify            # Test connectivity to target host
 make check             # Dry-run provisioning (--check mode)
 make provision         # Run provisioning (no upgrades)
 make provision-upgrade # Run provisioning with upgrades enabled
+
+# Maintenance
 make clean             # Clean Ansible cache
 ```
 
@@ -119,6 +141,8 @@ ansible-playbook playbooks/verify.yml
 ansible-playbook playbooks/site.yml --check
 ansible-playbook playbooks/site.yml -e enable_upgrades=true
 ```
+
+See [TESTING.md](TESTING.md) for detailed testing documentation.
 
 ## Design Principles
 
@@ -159,6 +183,7 @@ See [docs/UPGRADES.md](docs/UPGRADES.md) for detailed procedures per component.
 ## Documentation
 
 - [AGENTS.md](AGENTS.md) — Project intent, guardrails, and guidance for contributors
+- [TESTING.md](TESTING.md) — Testing strategy, CI workflows, and validation details
 - [docs/SETUP.md](docs/SETUP.md) — Setup and operational procedures
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — System design and component overview
 - [docs/UPGRADES.md](docs/UPGRADES.md) — Upgrade procedures and rollback plans

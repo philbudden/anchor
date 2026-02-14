@@ -1,0 +1,19 @@
+---
+# OpenWebUI role defaults
+
+# OpenWebUI container image (version pinned in group_vars/all.yml)
+# openwebui_image_tag: defined in group_vars/all.yml
+
+# OpenWebUI API configuration (from group_vars/all.yml)
+# openwebui_api_host: "127.0.0.1"
+# openwebui_api_port: 3000
+# openwebui_container_name: "openwebui"
+
+# OpenWebUI data directory (from group_vars/all.yml)
+# openwebui_data_dir: "{{ local_llm_data_dir }}/openwebui"
+
+# Docker Compose file location (on target Mac)
+openwebui_compose_dir: "{{ local_llm_data_dir }}/compose/openwebui"
+
+# Allow container image upgrade (default: false)
+openwebui_upgrade: "{{ enable_upgrades | default(false) }}"

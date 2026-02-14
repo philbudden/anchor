@@ -1,0 +1,13 @@
+---
+# Homebrew role metadata
+galaxy_info:
+  author: Local LLM Server Project
+  description: Installs and configures Homebrew on macOS
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: MacOSX
+      versions:
+        - all
+
+dependencies: []

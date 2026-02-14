@@ -1,0 +1,120 @@
+---
+# Docker Desktop installation and configuration
+# Idempotent: safe to re-run; detects existing installation
+#
+# Note: Docker Desktop on macOS may require manual first-run acceptance
+# of security prompts. This role will install but cannot bypass macOS TCC.
+
+- name: "Check if Docker Desktop is already installed"
+  ansible.builtin.stat:
+    path: "/Applications/Docker.app"
+  register: docker_app
+  when: ansible_system == "Darwin"
+
+- name: "Check if Docker CLI is available"
+  ansible.builtin.command: /usr/local/bin/docker --version
+  register: docker_cli_check
+  failed_when: false
+  changed_when: false
+  when: ansible_system == "Darwin"
+
+- name: "Display current Docker version (if installed)"
+  ansible.builtin.debug:
+    msg: "Docker currently installed: {{ docker_cli_check.stdout }}"
+  when:
+    - ansible_system == "Darwin"
+    - docker_cli_check is defined
+    - docker_cli_check is not skipped
+    - docker_cli_check.rc == 0
+
+- name: "Install Docker Desktop via Homebrew Cask"
+  community.general.homebrew_cask:
+    name: docker
+    state: present
+  when:
+    - ansible_system == "Darwin"
+    - not docker_app.stat.exists
+
+- name: "Upgrade Docker Desktop (if upgrades enabled)"
+  ansible.builtin.command: brew upgrade --cask docker
+  when:
+    - ansible_system == "Darwin"
+    - docker_desktop_upgrade | bool
+    - docker_app.stat.exists
+  register: docker_upgrade_result
+  changed_when: "'docker' in docker_upgrade_result.stdout"
+  failed_when: docker_upgrade_result.rc != 0 and 'already installed' not in docker_upgrade_result.stderr
+
+- name: "Check if Docker daemon is running"
+  ansible.builtin.command: /usr/local/bin/docker info
+  register: docker_info
+  failed_when: false
+  changed_when: false
+  when: ansible_system == "Darwin"
+
+- name: "Display Docker daemon status"
+  ansible.builtin.debug:
+    msg: >
+      Docker daemon {{ 'is running' if docker_info.rc == 0 else 'is NOT running' }}.
+      {% if docker_info.rc != 0 %}
+      Manual action required: Open Docker Desktop from Applications
+      and accept any security prompts. Docker Desktop must be running
+      before proceeding with container deployment.
+      {% endif %}
+  when:
+    - ansible_system == "Darwin"
+    - docker_info is defined
+    - docker_info is not skipped
+
+- name: "Verify Docker CLI works"
+  ansible.builtin.command: /usr/local/bin/docker --version
+  register: docker_version_output
+  changed_when: false
+  when: ansible_system == "Darwin"
+
+- name: "Display Docker CLI version"
+  ansible.builtin.debug:
+    msg: "Docker CLI version: {{ docker_version_output.stdout }}"
+  when:
+    - ansible_system == "Darwin"
+    - docker_version_output is defined
+    - docker_version_output is not skipped
+    - docker_version_output.stdout is defined
+
+- name: "Fail with instructions if Docker daemon is not running"
+  ansible.builtin.fail:
+    msg: |
+
+      ╔════════════════════════════════════════════════════════════════════════╗
+      ║                   MANUAL ACTION REQUIRED                               ║
+      ╚════════════════════════════════════════════════════════════════════════╝
+
+      Docker Desktop is installed but the Docker daemon is NOT running.
+
+      ACTION REQUIRED on the Mac mini ({{ ansible_host }}):
+
+        1. Open Docker Desktop:
+           • Launch /Applications/Docker.app
+           • Or use Spotlight (Cmd+Space) and search for "Docker"
+
+        2. Accept any macOS security prompts (first-time launch required)
+
+        3. Wait for Docker Desktop to fully start:
+           • Look for the whale icon in the menu bar
+           • Wait until the icon is steady (not animating)
+
+        4. Verify Docker is running:
+           Open Terminal on the Mac and run: docker info
+           (Should show server information without errors)
+
+      After Docker Desktop is running, re-run the playbook:
+        ansible-playbook playbooks/site.yml
+
+      The playbook will skip already-completed steps and continue with
+      OpenWebUI deployment.
+
+  when:
+    - ansible_system == "Darwin"
+    - docker_info is defined
+    - docker_info is not skipped
+    - docker_info.rc != 0

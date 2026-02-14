@@ -1,0 +1,12 @@
+---
+# Ollama models management role defaults
+
+# Model management modes (from group_vars/all.yml)
+# ollama_models_refresh: false  # Repull all declared models
+# ollama_models_prune: false    # Remove unmanaged models
+
+# Declared models list (single source of truth in group_vars/all.yml)
+# ollama_models: []
+
+# Ollama CLI path
+models_ollama_cli_path: "{{ homebrew_prefix }}/bin/ollama"

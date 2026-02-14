@@ -1,0 +1,13 @@
+---
+# Common role metadata
+galaxy_info:
+  author: Local LLM Server Project
+  description: Common setup tasks for all roles (directory structure, assertions)
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: MacOSX
+      versions:
+        - all
+
+dependencies: []

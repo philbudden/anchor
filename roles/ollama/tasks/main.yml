@@ -1,0 +1,90 @@
+---
+# Ollama installation and service configuration
+# Idempotent: safe to re-run; detects existing installation
+
+- name: "Check if Ollama is already installed"
+  ansible.builtin.stat:
+    path: "{{ homebrew_prefix }}/bin/ollama"
+  register: ollama_bin
+  when: ansible_system == "Darwin"
+
+- name: "Get installed Ollama version (if present)"
+  ansible.builtin.command: "{{ homebrew_prefix }}/bin/ollama --version"
+  register: ollama_current_version
+  failed_when: false
+  changed_when: false
+  when:
+    - ansible_system == "Darwin"
+    - ollama_bin.stat.exists
+
+- name: "Display current Ollama version"
+  ansible.builtin.debug:
+    msg: "Ollama currently installed: {{ ollama_current_version.stdout }}"
+  when:
+    - ansible_system == "Darwin"
+    - ollama_bin.stat.exists
+    - ollama_current_version is defined
+    - ollama_current_version is not skipped
+    - ollama_current_version.stdout is defined
+
+- name: "Install Ollama via Homebrew"
+  community.general.homebrew:
+    name: ollama
+    state: present
+  when:
+    - ansible_system == "Darwin"
+    - not ollama_bin.stat.exists
+
+- name: "Upgrade Ollama (if upgrades enabled)"
+  ansible.builtin.command: "{{ homebrew_prefix }}/bin/brew upgrade ollama"
+  when:
+    - ansible_system == "Darwin"
+    - ollama_upgrade | bool
+    - ollama_bin.stat.exists
+  register: ollama_upgrade_result
+  changed_when: "'ollama' in ollama_upgrade_result.stdout"
+  failed_when: ollama_upgrade_result.rc != 0 and 'already installed' not in ollama_upgrade_result.stderr
+
+- name: "Verify Ollama installation"
+  ansible.builtin.command: "{{ homebrew_prefix }}/bin/ollama --version"
+  register: ollama_version_output
+  changed_when: false
+  when: ansible_system == "Darwin"
+
+- name: "Display Ollama version"
+  ansible.builtin.debug:
+    msg: "Ollama version: {{ ollama_version_output.stdout }}"
+  when:
+    - ansible_system == "Darwin"
+    - ollama_version_output is defined
+    - ollama_version_output is not skipped
+    - ollama_version_output.stdout is defined
+
+- name: "Start Ollama service"
+  ansible.builtin.command: "{{ homebrew_prefix }}/bin/brew services start ollama"
+  args:
+    creates: "{{ ansible_env.HOME }}/Library/LaunchAgents/homebrew.mxcl.ollama.plist"
+  when: ansible_system == "Darwin"
+  register: ollama_service_start
+  changed_when: ollama_service_start.rc == 0
+
+- name: "Wait for Ollama API to be available"
+  ansible.builtin.uri:
+    url: "http://{{ ollama_api_host }}:{{ ollama_api_port }}/api/tags"
+    method: GET
+    timeout: 5
+    status_code: 200
+  register: ollama_health
+  until: ollama_health.status == 200
+  retries: 6
+  delay: 5
+  when: ansible_system == "Darwin"
+  failed_when: false
+
+- name: "Display Ollama health check result"
+  ansible.builtin.debug:
+    msg: "Ollama API is {{ 'healthy' if ollama_health.status == 200 else 'not responding' }}"
+  when:
+    - ansible_system == "Darwin"
+    - ollama_health is defined
+    - ollama_health is not skipped

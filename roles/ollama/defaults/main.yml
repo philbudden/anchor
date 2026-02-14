@@ -1,0 +1,18 @@
+---
+# Ollama role defaults
+
+# Ollama version is defined in group_vars/all.yml (ollama_version)
+# Override there for version changes
+
+# Ollama API configuration (from group_vars/all.yml)
+# ollama_api_host: "127.0.0.1"
+# ollama_api_port: 11434
+
+# Ollama data directory (models storage)
+# ollama_models_dir: defined in group_vars/all.yml
+
+# Ollama service name (launchd on macOS)
+ollama_service_name: "com.ollama.app"
+
+# Allow Ollama upgrade (default: false)
+ollama_upgrade: "{{ enable_upgrades | default(false) }}"

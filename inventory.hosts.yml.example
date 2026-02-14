@@ -1,0 +1,36 @@
+---
+# Example inventory file for local-llm-server provisioning.
+# Copy this to hosts.yml and configure with your actual values.
+#
+# DO NOT commit hosts.yml with real credentials to version control!
+
+all:
+  children:
+    macmini:
+      hosts:
+        macmini_primary:
+          # Replace these values with your Mac mini's actual configuration:
+
+          # Mac mini IP address or hostname
+          ansible_host: 192.168.1.100
+
+          # SSH user (must have sudo privileges)
+          ansible_user: automation
+
+          # SSH port (uncomment if non-standard)
+          # ansible_port: 22
+
+          # SSH key path (uncomment if using key-based auth - recommended)
+          # ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+
+          # SSH connection settings
+          # ansible_connection: ssh
+          # ansible_ssh_common_args: -o StrictHostKeyChecking=no
+
+          # Python interpreter (usually auto-detected)
+          # ansible_python_interpreter: /usr/bin/python3
+
+          # Host-specific variable overrides (optional)
+          # Override group_vars/macmini.yml or group_vars/all.yml here if needed
+          # Example:
+          # local_llm_data_dir: /Volumes/ExternalDrive/local-llm

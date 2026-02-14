@@ -1,4 +1,6 @@
 # Ansible-lint configuration
+# Tuned for macOS-specific provisioning project
+# Trade-offs documented below
 
 ---
 profile: moderate
@@ -10,12 +12,30 @@ exclude_paths:
   - venv/
   - __pycache__/
   - .ansible/
+  - .ansible_facts_cache/
+  - compose/
 
-# Rules to skip
+# Rules to skip (with rationale)
 skip_list:
-  - risky-shell-pipe  # Allow shell pipes where appropriate
-  - no-changed-when   # Allow commands without changed_when in some cases
+  # macOS provisioning requires raw/shell for initial setup (e.g., preflight.yml)
+  # These are guarded and documented
+  - command-instead-of-shell
+  
+  # Some macOS-specific commands require pipes (e.g., xcode-select detection)
+  # These are reviewed and safe
+  - risky-shell-pipe
+  
+  # Template validation requires actual variables; checked separately
+  - var-naming[no-jinja]
+
+# Warn on these but don't fail (enforce gradually)
+warn_list:
+  - no-changed-when  # Encourage but allow exceptions for read-only commands
+  - name[casing]     # Encourage consistent naming
 
 # Enable offline mode to avoid schema downloads
 offline: true
+
+# Use parseable format for CI integration
+# parseable: true  # Uncomment for machine-readable output
 
