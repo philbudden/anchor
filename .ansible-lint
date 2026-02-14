@@ -1,7 +1,7 @@
 # Ansible-lint configuration
 
 ---
-extends: default
+profile: moderate
 
 # Exclude paths from linting
 exclude_paths:
@@ -11,17 +11,11 @@ exclude_paths:
   - __pycache__/
   - .ansible/
 
-# Rules to ignore or customize
-rules:
-  # Avoid line length warnings for inventory and doc files
-  line-length:
-    max: 120
-  
-  # Allow use of shell module where appropriate
-  risky-shell-task: disable
-  
-  # Configure loop variable prefix rule
-  loop-var-prefix: []
+# Rules to skip
+skip_list:
+  - risky-shell-pipe  # Allow shell pipes where appropriate
+  - no-changed-when   # Allow commands without changed_when in some cases
 
-# Verbosity level (higher = more output)
-verbosity: 1
+# Enable offline mode to avoid schema downloads
+offline: true
+

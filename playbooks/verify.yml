@@ -4,8 +4,8 @@
 # No system state is modified. Gather facts and validate assumptions.
 
 - name: "Verify connectivity and environment"
-  hosts: all
-  gather_facts: yes
+  hosts: macmini
+  gather_facts: true
   vars:
     ansible_connection: ssh
 
@@ -21,7 +21,7 @@
       debug:
         msg: |
           Hostname: {{ ansible_hostname }}
-          OS: {{ ansible_os_family }} / {{ ansible_system }} {{ ansible_system_version }}
+          OS: {{ ansible_os_family }} / {{ ansible_distribution }} {{ ansible_distribution_version }}
           Architecture: {{ ansible_architecture }}
           IP Address: {{ ansible_default_ipv4.address | default('N/A') }}
 

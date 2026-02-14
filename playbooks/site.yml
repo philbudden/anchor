@@ -17,7 +17,7 @@
 
 - name: "Provision local LLM server"
   hosts: macmini
-  gather_facts: yes
+  gather_facts: true
 
   pre_tasks:
     - name: "Display provisioning mode"
@@ -27,11 +27,11 @@
             enable_upgrades: {{ enable_upgrades }}
             ollama_models_refresh: {{ ollama_models_refresh }}
             ollama_models_prune: {{ ollama_models_prune }}
-          
+
           Data directory: {{ local_llm_data_dir }}
           Declared models: {{ ollama_models | length }}
 
-  roles:
+  roles: []
     # Future roles will be added here:
     # - role: common
     #   tags: [always]
@@ -55,4 +55,3 @@
             1. Verify connectivity: ansible-playbook playbooks/verify.yml
             2. Review health checks in docs/
             3. Configure access as needed
-
