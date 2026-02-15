@@ -1,4 +1,8 @@
-# Local LLM Server
+# Anchor
+
+## Stable base for everything AI locally
+
+![logo](.assets/anchor.png)
 
 This repository provisions a **dedicated Mac mini** as a **stable, reproducible local LLM host**.
 
